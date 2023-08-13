@@ -1,0 +1,82 @@
+# An example Lando configuration for Drupal.
+# See https://github.com/AaronFeledy/lando-examples/ for the latest.
+name: example-drupal-php81
+recipe: drupal9
+
+# The default webroot directory when installing Drupal via composer is `web`. This tells Lando
+# to look there for your index.php file. Change this if you are not using the default.
+config:
+  database: mariadb:10.4
+  php: '8.1'
+  via: nginx
+  webroot: web
+  xdebug: true
+  composer_version: "2.4.2"
+
+
+services:
+  # Container server for NGINX
+  appserver:
+    ssl: true
+    xdebug: true
+    config:
+      php: devtools/php/conf/xdebug.ini
+    type: php:8.1
+    overrides:
+      environment:
+        PHP_IDE_CONFIG: "serverName=appserver"
+
+tooling:
+  cr:
+    cmd:
+      - appserver: "drush cr"
+
+  drupalcs:
+    service: appserver
+    cmd: "phpcs --standard=Drupal,DrupalPractice"
+    description: Run phpcs Drupal Coding Standards against a given file or directory.
+  drupalcbf:
+    service: appserver
+    cmd: "phpcbf --standard=Drupal"
+    description: Automatically fix Drupal coding standards suggestions.
+  phpunit:
+    service: appserver
+    cmd: phpunit --configuration web/core
+    description: Run PHPUnit tests on a specific file or Drupal module.
+  drupal-check:
+    service: appserver
+    cmd: drupal-check -ad
+    description: Check Drupal code for deprecations and discover bugs via static analysis.
+  phpstan:
+    service: appserver
+    cmd: /app/vendor/bin/phpstan
+  test:
+    service: appserver
+    description: Run Tests Locally
+    cmd:
+      - appserver: /app/vendor/bin/phpstan analyse web/modules/custom web/themes/custom
+  # APACHE VERSION
+  #  xdebug-on:
+  #    service: appserver
+  #    description: Enable xdebug for nginx.
+  #    cmd: rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && docker-php-ext-enable xdebug && /etc/init.d/apache2 reload && echo "Xdebug enabled"
+  #    user: root
+  #
+  #  xdebug-off:
+  #    service: appserver
+  #    description: Disable xdebug for nginx.
+  #    cmd: rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && /etc/init.d/apache2 reload && echo "Xdebug disabled"
+  #    user: root
+
+  #  NGINX VERSION
+  xdebug-on:
+    service: appserver
+    description: Enable xdebug for nginx.
+    cmd: docker-php-ext-enable xdebug && pkill -o -USR2 php-fpm
+    user: root
+
+  xdebug-off:
+    service: appserver
+    description: Disable xdebug for nginx.
+    cmd: rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && pkill -o -USR2 php-fpm
+    user: root

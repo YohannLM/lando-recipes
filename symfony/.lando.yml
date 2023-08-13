@@ -1,0 +1,80 @@
+name: example-symfony
+recipe: symfony
+config:
+  webroot: ./public
+  via: nginx
+  php: '8.1'
+  xdebug: true
+
+proxy:
+  #NGINX
+  appserver_nginx:
+    - example-symfony.lndo.site
+
+services:
+  appserver:
+    overrides:
+      environment:
+        # Support debugging CLI with XDEBUG.
+        PHP_IDE_CONFIG: "serverName=appserver"
+        XDEBUG_SESSION_START: lando
+
+  database:
+    type: mysql
+    # For connect phpstorm database
+    portforward: 3310
+    creds:
+      user: symfony_user
+      password: symfony_pass
+      database: symfony_db
+
+#  node:
+#    type: node
+#    install_dependencies_as_root:
+#      # Upgrade Yarn
+#      - "curl -o- -L https://yarnpkg.com/install.sh | bash"
+#    install_dependencies_as_me:
+#      - "yarn --cwd=$LANDO_MOUNT"
+
+tooling:
+  #  NGINX VERSION
+  xdebug-on:
+    service: appserver
+    description: Enable xdebug for nginx.
+    cmd: docker-php-ext-enable xdebug && pkill -o -USR2 php-fpm
+    user: root
+
+  xdebug-off:
+    service: appserver
+    description: Disable xdebug for nginx.
+    cmd: rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && pkill -o -USR2 php-fpm
+    user: root
+
+  # Symfony console
+  sf:
+    service: appserver
+    description: Run Symfony console commands
+    cmd: php bin/console
+  diff:
+    service: appserver
+    description: Generate a database migration by comparing your current database to your mapping information
+    cmd: php bin/console doctrine:migrations:diff
+  migrate:
+    service: appserver
+    description: Execute a database migration to a specified version or the latest available version
+    cmd: php bin/console doctrine:migrations:migrate
+  migration:
+    service: appserver
+    description:  Creates a new migration based on database changes
+    cmd: php bin/console make:migration
+  cache:
+    service: appserver
+    description: Clears the Symfony cache
+    cmd: php bin/console cache:clear
+
+  # Node tooltips
+  yarn:
+    service: node
+    description: Run the Yarn package manager
+    cmd: yarn
+
