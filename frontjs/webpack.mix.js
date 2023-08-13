@@ -19,11 +19,11 @@ const { setResourceRoot } = require('laravel-mix');
 
 // Domain of your appserver
 const proxyDomain =
-  process.env.MIX_BS_PROXY_DOMAIN || 'appserver.les4cc.internal';
+  process.env.MIX_BS_PROXY_DOMAIN || 'appserver.my-project.internal';
 
 // The domain of node contianer throught your proxy
 const domain =
-  process.env.MIX_BS_DOMAIN || 'bs.les4cc.lndo.site';
+  process.env.MIX_BS_DOMAIN || 'bs.my-project.lndo.site';
 
 // The port of proxy url will serve BS for
 const port =
