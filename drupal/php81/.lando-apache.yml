@@ -3,17 +3,16 @@ recipe: drupal10
 config:
   database: mariadb:10.4
   php: '8.1'
-  via: nginx
   webroot: web
   xdebug: true
   composer_version: "2.4.2"
 
 env_file:
-  - .env
+  - devtools/.env
 
 
 proxy:
-  appserver_nginx:
+  appserver:
     - les4cc.lndo.site
   mailhog:
     - mailhog.les4cc.lndo.site
@@ -25,7 +24,6 @@ services:
 
   #  Container server
   appserver:
-    ssl: true
     xdebug: true
     config:
       php: devtools/php/conf/xdebug.ini
@@ -33,7 +31,10 @@ services:
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=appserver"
+      volumes:
+        - ../data/web/sites/default/files:/app/web/sites/default/files
     build_as_root:
+      - rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && /etc/init.d/apache2 reload
       # Note that you will want to use the script for the major version of node you want to install
       # See: https://github.com/nodesource/distributions/blob/master/README.md#installation-instructions
 #      - curl -sL https://deb.nodesource.com/setup_18.x | bash -
