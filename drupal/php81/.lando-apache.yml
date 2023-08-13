@@ -1,4 +1,4 @@
-name: les4cc
+name: my-project
 recipe: drupal10
 config:
   database: mariadb:10.4
@@ -13,11 +13,11 @@ env_file:
 
 proxy:
   appserver:
-    - les4cc.lndo.site
+    - my-project.lndo.site
   mailhog:
-    - mailhog.les4cc.lndo.site
+    - mailhog.my-project.lndo.site
   node:
-    - bs.les4cc.lndo.site:3000
+    - bs.my-project.lndo.site:3000
 
 
 services:
